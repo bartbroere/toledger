@@ -9,18 +9,22 @@ ING Bank (NL), but extending it for similar CSV exports should be trivial.
 
 ```
 Usage: 
-  toledger.py <format>
-  toledger.py <format> <input>
-  toledger.py <format> [(-a | --append)] <input> <output>
-  toledger.py <format> [(-f | --from)] <input> <output>
+  toledger.py <format> [options] 
+  toledger.py <format> [options] <input>
+  toledger.py <format> [options] <input> <output>
   toledger.py (-h | --help)
 
 Options:
   -a --append    Append to the output file if it exists.
-  -f --from      Account to get balances from. 
-                 Default Equity:Unspecified:[IBAN]
-  -t --to        Account to send transactions to. 
-                 Default Expenses:Unspecified:[IBAN]
+  -b --balance   Ensure that all output is balanced.
+                 Choose this option if the output must be a
+                 standalone ledger file. These files should always
+                 have a balance of 0 to be valid.
+  --from=<from>  Account to get balances from. 
+                 Default Equity:[Unspecified | IBAN]
+  --to=<to>      Account to send transactions to. 
+                 Default Expenses:[Unspecified | IBAN]
+  --name=<name>  Account name. Default Assets:[IBAN]
   -c --code      Use the currency code, e.g. EUR
   -s --symbol    Use the currency symbol, e.g. €  
   -h --help      Show the usage guidelines.
