@@ -11,6 +11,7 @@ setup(
     long_description=readme(),
     keywords=["ledger", "convert", "conversion", "bank", "ing", "nl", "accounting", "command", "commandline", "cli"],
     packages=['toledger'],
+    scripts=['toledger/toledger.py'],
     url='https://github.com/bartbroere/toledger/',
     license='MIT',
     author='Bart Broere',
