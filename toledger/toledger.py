@@ -27,6 +27,7 @@ from sys import stdin, stdout
 import csv
 import bankstatements
 from time import strftime, strptime
+import hashlib
 
 def main(a):
     with open(a["<input>"], "r") as inputfile:
@@ -40,13 +41,14 @@ def main(a):
                 if i == 0:
                     header = inputentry
                 else:
-                    parsedentry = parse(header, inputentry, a["<format>"])
+                    parsedentry = parse(header, inputentry, a["<format>"],
+                                        a["--hash"])
                     # TODO: Interactive mode
                     write(output, **parsedentry)
                 i += 1
     return 0
 
-def parse(header, entry, format):
+def parse(header, entry, format, hash=False):
     # TODO: Smart transaction labeling
     parsed = {"meta": {}}
     for name, field in specification(format)["fields"].items():
@@ -66,7 +68,10 @@ def parse(header, entry, format):
             parsed["amount"] = parsed["amount"].replace(
                 field["decimalseparator"], ".")
         elif name == "dateformat":
-          parsed["date"] = strftime("%Y-%m-%d", strptime(parsed["date"], field))
+            parsed["date"] = strftime("%Y-%m-%d", 
+                                      strptime(parsed["date"], 
+                                      field))
+    if hash: parsed["hash"] = hashlib.sha256(" ".join(entry)).hexdigest()
     return parsed
 
 def specification(format):
@@ -91,6 +96,8 @@ def write(output, **data):
     output.write("Assets:"+data["source"]+"\t"+data["direction"]+
                  data["amount"]+"\n")
     # TODO Save metadata to outputfile
+    if "hash" in data:
+        output.write("\t  ; hash: "+data["hash"]+"\n")
     output.write("\n")
     return
 
