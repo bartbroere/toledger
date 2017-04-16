@@ -12,7 +12,7 @@ ing_nl = {"fields": {"Datum": "date",
                      "MutatieSoort": "meta",
                      "Mededelingen": "meta"},
           "interpretation": {"directionout": "Af",
-                             "currency": {"symbol": "", #TODO fix unicode issue
+                             "currency": {"symbol": u"\u20ac", #TODO fix unicode issue
                                           "code": "EUR"},
                              "separators": {"thousandseparator": ".",
                                             "decimalseparator": ","},

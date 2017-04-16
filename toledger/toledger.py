@@ -17,6 +17,7 @@ Options:
   --to=<to>      Account to send transactions to. 
                  Default Expenses:[Unspecified | IBAN]
   --name=<name>  Account name. Default Assets:[IBAN]
+  --hash         Save a hash of the transaction for duplicate removal
   -c --code      Use the currency code, e.g. EUR
   -s --symbol    Use the currency symbol, e.g. €  
   -h --help      Show the usage guidelines.
@@ -34,21 +35,20 @@ def main(a):
         input = csv.reader(inputfile, **properties(a["<format>"]))
         filemode = "a" if a["--append"] else "w"
         if not a["<output>"]: outputlocation = stdout
-        else: outputlocation = open(a["<output>"], filemode)
+        else: outputlocation = open(a["<output>"], filemode, encoding="utf8")
         with outputlocation as output:
             i = 0
             for inputentry in input:
                 if i == 0:
                     header = inputentry
                 else:
-                    parsedentry = parse(header, inputentry, a["<format>"],
-                                        a["--hash"])
+                    parsedentry = parse(header, inputentry, a["<format>"])
                     # TODO: Interactive mode
                     write(output, **parsedentry)
                 i += 1
     return 0
 
-def parse(header, entry, format, hash=False):
+def parse(header, entry, format):
     # TODO: Smart transaction labeling
     parsed = {"meta": {}}
     for name, field in specification(format)["fields"].items():
@@ -58,9 +58,9 @@ def parse(header, entry, format, hash=False):
         if name == "directionout":
             parsed["direction"] = "-" if parsed["direction"] == field else ""
         elif name == "currency":
-            if "--code" in a: 
+            if a["--code"]: 
                 parsed["amount"] = " ".join([parsed["amount"], field["code"]])
-            elif "--symbol" in a: 
+            elif a["--symbol"]: 
                 parsed["amount"] = " ".join([field["symbol"], parsed["amount"]])
         elif name == "separators":
             parsed["amount"] = parsed["amount"].replace(
@@ -71,7 +71,8 @@ def parse(header, entry, format, hash=False):
             parsed["date"] = strftime("%Y-%m-%d", 
                                       strptime(parsed["date"], 
                                       field))
-    if hash: parsed["hash"] = hashlib.sha256(" ".join(entry)).hexdigest()
+    if a["--hash"]: 
+        parsed["hash"] = hashlib.sha256(" ".join(entry)).hexdigest()
     return parsed
 
 def specification(format):
@@ -95,7 +96,8 @@ def write(output, **data):
                      " "+"\n\t")
     output.write("Assets:"+data["source"]+"\t"+data["direction"]+
                  data["amount"]+"\n")
-    # TODO Save metadata to outputfile
+    for metakey, metavalue in data["meta"].items():
+        output.write("\t  ; "+metakey.replace(" ", "")+": "+metavalue+"\n")
     if "hash" in data:
         output.write("\t  ; hash: "+data["hash"]+"\n")
     output.write("\n")
