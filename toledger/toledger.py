@@ -29,7 +29,9 @@ from time import strftime, strptime
 import hashlib
 
 def main(a):
-    with open(a["<input>"], "r") as inputfile:
+    if not a["<input>"]: inputlocation = stdin
+    else: inputlocation = open(a["<input>"], "r", encoding="utf8")
+    with inputlocation as inputfile:
         input = csv.reader(inputfile, **properties(a["<format>"]))
         filemode = "a" if a["--append"] else "w"
         if not a["<output>"]: outputlocation = stdout
