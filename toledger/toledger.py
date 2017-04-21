@@ -61,7 +61,8 @@ def parse(header, entry, format):
             if a["--code"]: 
                 parsed["amount"] = " ".join([parsed["amount"], field["code"]])
             elif a["--symbol"]: 
-                parsed["amount"] = " ".join([field["symbol"], parsed["amount"]])
+                parsed["amount"] = " ".join([field["symbol"], 
+                                             parsed["amount"]])
         elif name == "separators":
             parsed["amount"] = parsed["amount"].replace(
                 field["thousandseparator"], "")
@@ -72,7 +73,8 @@ def parse(header, entry, format):
                                       strptime(parsed["date"], 
                                       field))
     if a["--hash"]: 
-        parsed["hash"] = hashlib.sha256(" ".join(entry)).hexdigest()
+        parsed["hash"] = hashlib.sha256(" ".join(entry).encode(
+                             "utf-8")).hexdigest()
     return parsed
 
 def specification(format):

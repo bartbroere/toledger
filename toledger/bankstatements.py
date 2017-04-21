@@ -2,6 +2,9 @@
 Contains metadata for parsing input files
 """
 
+from time import strftime, strptime
+import hashlib
+
 #2017-04-21 13:21 Market
 #    Assets:Bitstamp              10 BTC @@ $5000.00
 #    Assets:Bitstamp
@@ -31,22 +34,26 @@ def bitstamp_net_parse(header, entry, format, a):
     else:
         raise NotImplementedError("This transaction type is unknown")
     parsed["amount"] = parsed.get("direction", "")+parsed["amount"]
-    #if a["--hash"]: 
-    #    parsed["hash"] = hashlib.sha256(" ".join(entry)).hexdigest()
+    if a["--hash"]: 
+        parsed["hash"] = hashlib.sha256(" ".join(entry).encode(
+                             "utf-8")).hexdigest()
+    parsed["date"] = strftime("%Y-%m-%d %H:%M", 
+                              strptime(parsed["date"], 
+                              "%b. %d, %Y, %I:%M %p"))
     return parsed
 
 def bitstamp_net_write(output, a, **data):
-    #account = a.get("--name", "Assets:Bitstamp")
-    account = "Assets:Bitstamp"
+    account = a["--name"] if a["--name"] else "Assets:Bitstamp"
+    source = a["--from"] if a["--from"] else "Assets:Unspecified"
     output.write("\n")
     output.write(data["date"]+" "+data["name"])
     if data["name"] in ["Deposit", "Withdrawal"]:
         output.write("\n\t"+account+"\t"+data["amount"])
-        output.write("\n\tAssets:Unspecified\n")
+        output.write("\n\t"+source+"\n")
     elif data["name"] == "Market":
         output.write("\n\t"+account+"\t"+
                      data["amount"]+" @@ "+data["value"])
-        output.write("\n\tAssets:Bitstamp\n")
+        output.write("\n\t"+account+"\n")
     elif data["name"] == "Sub Account Transfer":
         output.write("\n\t"+account+"\t"+data["amount"])
         output.write("\n\t"+account+":"+data["destination"]+"\n")
