@@ -13,10 +13,8 @@ Options:
                  standalone ledger file. These files should always
                  have a balance of 0 to be valid.
   --from=<from>  Account to get balances from. 
-                 Default Equity:[Unspecified | IBAN]
   --to=<to>      Account to send transactions to. 
-                 Default Expenses:[Unspecified | IBAN]
-  --name=<name>  Account name. Default Assets:[IBAN]
+  --name=<name>  Account name.
   --hash         Save a hash of the transaction for duplicate removal
   -c --code      Use the currency code, e.g. EUR
   -s --symbol    Use the currency symbol, e.g. €  
@@ -50,6 +48,8 @@ def main(a):
 
 def parse(header, entry, format):
     # TODO: Smart transaction labeling
+    if "parse" in specification(a["<format>"]).keys():
+        return specification(format)["parse"](header, entry, format, a)
     parsed = {"meta": {}}
     for name, field in specification(format)["fields"].items():
         if field == "meta": parsed["meta"][name] = entry[header.index(name)]
@@ -76,26 +76,26 @@ def parse(header, entry, format):
     return parsed
 
 def specification(format):
-    try:
-        specification = getattr(bankstatements, format)
-        return specification
-    except:
-        raise NotImplementedError("The specified format does not exist")
+    try: return getattr(bankstatements, format)
+    except: raise NotImplementedError("The specified format does not exist")
 
 def properties(format): return specification(format)["properties"]
 
 def write(output, **data):
+    if "write" in specification(a["<format>"]).keys():
+        return specification(a["<format>"])["write"](output, a, **data)
     output.write("\n")
     output.write(data["date"]+" "+data["name"])
     output.write("\n\t")
-    if data["direction"] == "-":
-        output.write("Expenses:"+max([data["destination"], "Unspecified"], key=len)+
+    if data.get("direction", "") == "-":
+        output.write("Expenses:"+data.get("destination", "Unspecified")+
                      " "+"\n\t")
     else:
-        output.write("Equity:"+max([data["destination"], "Unspecified"], key=len)+
+        output.write("Equity:"+data.get("destination", "Unspecified")+
                      " "+"\n\t")
-    output.write("Assets:"+data["source"]+"\t"+data["direction"]+
-                 data["amount"]+"\n")
+    output.write("Assets:"+data.get("source", "Unspecified")+"\t"+
+                 data.get("direction", "Unspecified")+
+                 data.get("amount", "Unspecified")+"\n")
     for metakey, metavalue in data["meta"].items():
         output.write("\t  ; "+metakey.replace(" ", "")+": "+metavalue+"\n")
     if "hash" in data:
@@ -104,5 +104,5 @@ def write(output, **data):
     return
 
 if __name__ == '__main__':
-    a = docopt(__doc__, version='ToLedger 1.0')
+    a = docopt(__doc__, version='ToLedger 2017.04.21')
     main(a)

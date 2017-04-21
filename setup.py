@@ -6,10 +6,11 @@ def readme():
 
 setup(
     name='ToLedger',
-    version='1.0',
+    version='2017.04.21',
     description='Convert bank statements to Ledger',
     long_description=readme(),
-    keywords=["ledger", "convert", "conversion", "bank", "ing", "nl", "accounting", "command", "commandline", "cli"],
+    keywords=["ledger", "convert", "conversion", "bank", "ing", "nl", 
+              "accounting", "command", "commandline", "cli", "bitstamp"],
     packages=['toledger'],
     scripts=['toledger/toledger.py'],
     url='https://github.com/bartbroere/toledger/',

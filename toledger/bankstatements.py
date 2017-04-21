@@ -10,29 +10,66 @@ Contains metadata for parsing input files
 #    Assets:Bitstamp              10 BTC
 #    Equity:Unspecified
 
-bitstamp_net = {"transactiontypes": "Type",
-                "Withdrawal": {},
-                "Market": {},
-                "Sub Account Transfer": {},
-                "Deposit": {}}
+def bitstamp_net_parse(header, entry, format, a):
+    parsed = {"meta": {}}
+    for name, field in bitstamp_net["fields"].items():
+        if field == "meta": 
+            parsed["meta"][name] = entry[header.index(name)]
+        else: 
+            parsed[field] = entry[header.index(name)]
+    if parsed["name"] in ["Deposit", "Withdrawal"]:
+        if parsed["name"] == "Withdrawal": 
+            parsed["direction"] = "-"
+    elif parsed["name"] == "Market":
+        if parsed["meta"]["Sub Type"] == "Sell":
+            parsed["direction"] = "-"
+    elif parsed["name"] == "Sub Account Transfer":
+        if parsed["value"] == "Addition":
+            parsed["direction"] = "-"
+            parsed["destination"] = parsed["meta"]["Account"].replace(
+                " ", "")
+    else:
+        raise NotImplementedError("This transaction type is unknown")
+    parsed["amount"] = parsed.get("direction", "")+parsed["amount"]
+    #if a["--hash"]: 
+    #    parsed["hash"] = hashlib.sha256(" ".join(entry)).hexdigest()
+    return parsed
 
-bitstamp_net = {"fields": {"Type": ["name", "direction"],
+def bitstamp_net_write(output, a, **data):
+    #account = a.get("--name", "Assets:Bitstamp")
+    account = "Assets:Bitstamp"
+    output.write("\n")
+    output.write(data["date"]+" "+data["name"])
+    if data["name"] in ["Deposit", "Withdrawal"]:
+        output.write("\n\t"+account+"\t"+data["amount"])
+        output.write("\n\tAssets:Unspecified\n")
+    elif data["name"] == "Market":
+        output.write("\n\t"+account+"\t"+
+                     data["amount"]+" @@ "+data["value"])
+        output.write("\n\tAssets:Bitstamp\n")
+    elif data["name"] == "Sub Account Transfer":
+        output.write("\n\t"+account+"\t"+data["amount"])
+        output.write("\n\t"+account+":"+data["destination"]+"\n")
+    for metakey, metavalue in data["meta"].items():
+        output.write("\t  ; "+metakey.replace(" ", "")+": "+metavalue+"\n")
+    if "hash" in data:
+        output.write("\t  ; hash: "+data["hash"]+"\n")
+    output.write("\n")
+    return
+
+bitstamp_net = {"fields": {"Type": "name",
                            "Datetime": "date",
                            "Account": "meta",
                            "Amount": "amount",
                            "Value": "value",
                            "Rate": "meta",
                            "Fee": "meta",
-                           "Sub Type": "direction"},
-                "interpretation": {"byfield": "Type",
-                                   "fields": {"Market": "assetconv",
-                                              "Deposit": "default",
-                                              "Withdrawal": "default",
-                                              "Sub Account Transfer": "subaccount"}
-                                   "directionout": ["Sell", "Withdrawal"],
-                                   "dateformat": ""},
+                           "Sub Type": "meta"},
+                "interpretation": {}, #handled by bitstamp_net_parse
                 "properties": {"quotechar": "\"",
-                               "delimiter": ","}}
+                               "delimiter": ","},
+                "parse": bitstamp_net_parse,
+                "write": bitstamp_net_write}
 
 ing_nl = {"fields": {"Datum": "date",
                      "Naam / Omschrijving": "name",
@@ -44,7 +81,8 @@ ing_nl = {"fields": {"Datum": "date",
                      "MutatieSoort": "meta",
                      "Mededelingen": "meta"},
           "interpretation": {"directionout": "Af",
-                             "currency": {"symbol": u"\u20ac", #TODO fix unicode issue
+                             "currency": {"symbol": u"\u20ac", 
+                                          #TODO fix unicode issue
                                           "code": "EUR"},
                              "separators": {"thousandseparator": ".",
                                             "decimalseparator": ","},
@@ -53,7 +91,7 @@ ing_nl = {"fields": {"Datum": "date",
                          "delimiter": ","},
           "type": "default"}
 
-kraken_com = {"group_by": "refid"
+kraken_com = {"group_by": "refid",
               "fields": {"time": "date",
                          "refid": "name",
                          "txid": "source",
