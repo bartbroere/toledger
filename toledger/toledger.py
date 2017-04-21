@@ -8,10 +8,7 @@ Usage:
 
 Options:
   -a --append    Append to the output file if it exists.
-  -b --balance   Ensure that all output is balanced.
-                 Choose this option if the output must be a
-                 standalone ledger file. These files should always
-                 have a balance of 0 to be valid.
+  -b --balance   Get the initial balance (if possible)
   --from=<from>  Account to get balances from. 
   --to=<to>      Account to send transactions to. 
   --name=<name>  Account name.

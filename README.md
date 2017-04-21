@@ -5,7 +5,8 @@ some changes to make it more generally applicable, allowing for other
 banks to be added.
 
 Currently this library is only known to work with the export files of
-ING Bank (NL), but extending it for similar CSV exports should be trivial.
+ING Bank (NL) and Bitstamp, but extending it for similar CSV exports 
+should be trivial.
 
 ```
 Usage: 
@@ -16,15 +17,11 @@ Usage:
 
 Options:
   -a --append    Append to the output file if it exists.
-  -b --balance   Ensure that all output is balanced.
-                 Choose this option if the output must be a
-                 standalone ledger file. These files should always
-                 have a balance of 0 to be valid.
+  -b --balance   Get the initial balance (if possible)
   --from=<from>  Account to get balances from. 
-                 Default Equity:[Unspecified | IBAN]
   --to=<to>      Account to send transactions to. 
-                 Default Expenses:[Unspecified | IBAN]
-  --name=<name>  Account name. Default Assets:[IBAN]
+  --name=<name>  Account name.
+  --hash         Save a hash of the transaction for duplicate removal
   -c --code      Use the currency code, e.g. EUR
   -s --symbol    Use the currency symbol, e.g. €  
   -h --help      Show the usage guidelines.
